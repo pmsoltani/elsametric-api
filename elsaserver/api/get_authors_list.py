@@ -3,7 +3,7 @@ from elsametric.models.department import Department
 from elsametric.models.institution import Institution
 
 
-def get_authors_list(session, institution_id_scp):
+def get_institution_authors(session, institution_id_scp):
     # This function is not directly involved with the frontend
 
     # get a list of all faculty members of the home_institution
@@ -23,7 +23,7 @@ def get_authors_list(session, institution_id_scp):
 			Author.type == 'Faculty',
 			Institution.id_scp == institution_id_scp) \
 		.order_by(Author.last) \
-		.all()
+		.all()  # empty list if not found
 
 	response_backend = {}  # used to map the id_frontend to id, for backend only
 	response_frontend = []  # returned to the frontend
@@ -35,4 +35,4 @@ def get_authors_list(session, institution_id_scp):
 			'first': author.first_pref or author.first,
 			'last': author.last_pref or author.last
 		})
-	return response_backend, response_frontend
+	return response_backend, tuple(response_frontend)
