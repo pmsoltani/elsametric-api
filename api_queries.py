@@ -1,7 +1,8 @@
-import os
+import io
 import json
+from pathlib import Path
 
-from sqlalchemy import extract
+# from sqlalchemy import extract
 
 from elsametric.models.base import Session
 from elsametric.models.associations import Author_Department
@@ -21,7 +22,7 @@ from elsametric.models.source_metric import Source_Metric
 from elsametric.models.subject import Subject
 
 
-from elsaserver.api.get_authors_list import get_authors_list
+from elsaserver.api.get_institution_authors import get_institution_authors
 from elsaserver.api.get_author_info import get_author_info
 from elsaserver.api.get_author_papers import get_author_papers
 from elsaserver.api.get_author_papers_year import get_author_papers_year
@@ -39,36 +40,17 @@ from elsaserver.api.get_author_network import get_author_network
 # ==============================================================================
 
 
-config_path = os.path.join(os.getcwd(), 'config.json')
-with open(config_path, 'r') as config_file:
+CURRENT_DIR = Path.cwd()
+with io.open(CURRENT_DIR / 'config.json', 'r') as config_file:
     config = json.load(config_file)
-
 config = config['api']
-home_institution_id_scp = config['home_institution_id_scp']
-year_range = config['year_range']
-keywords_threshold = config['keywords_threshold']
-collaboration_threshold = config['collaboration_threshold']
-network_max_count = config['network_max_count']
 
-
-# ==============================================================================
-# Queries: Base
-# ==============================================================================
-
-
-session = Session()
-
-a = session.query(Author)
-# prf = session.query(Author_Profile)
-# c = session.query(Country)
-# d = session.query(Department)
-# f = session.query(Fund)
-i = session.query(Institution)
-# k = session.query(Keyword)
-p = session.query(Paper)
-# src = session.query(Source)
-# m = session.query(Source_Metric)
-# sub = session.query(Subject)
+HOME_INSTITUTION_ID_SCP = config['home_institution_id_scp']
+YEAR_RANGE = config['year_range']
+KEYWORDS_THRESHOLD = config['keywords_threshold']
+COLLABORATION_THRESHOLD = config['collaboration_threshold']
+NETWORK_MAX_COUNT = config['network_max_count']
+INITIAL_RESPONSE = {'message': 'not found', 'code': 404}
 
 
 # ==============================================================================
@@ -76,15 +58,14 @@ p = session.query(Paper)
 # ==============================================================================
 
 
-initial_response = {'message': 'not found', 'code': 404}
-
-home_institution = i \
-    .filter(Institution.id_scp == home_institution_id_scp) \
+session = Session()
+home_institution = session \
+    .query(Institution) \
+    .filter(Institution.id_scp == HOME_INSTITUTION_ID_SCP) \
     .first()
 
-authors_list_backend, authors_list_frontend = get_authors_list(
-    session, home_institution_id_scp)
-authors_tuple_frontend = tuple(authors_list_frontend)
+authors_backend, authors_frontend = get_institution_authors(
+    session, HOME_INSTITUTION_ID_SCP)
 
 
 def front_back_mapper(id_frontend: str):
@@ -92,7 +73,7 @@ def front_back_mapper(id_frontend: str):
         return None
 
     try:
-        return authors_list_backend[id_frontend]
+        return authors_backend[id_frontend]
     except KeyError:
         return None
 
