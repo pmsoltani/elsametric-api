@@ -19,8 +19,9 @@ from elsaserver import \
     get_author_trend, \
     get_author_keywords, \
     get_author_jmetrics, \
-    get_author_network
-from elsaserver.api.get_authors_rank import get_authors_rank
+    get_author_network, \
+    get_author_stats
+# from elsaserver.api.get_authors_rank import get_authors_rank
 
 from elsametric.models.base import Session
 
@@ -43,9 +44,9 @@ async def authors_list():
     return authors_frontend
 
 
-@app.get('/a/rankings')
-async def authors_rankings():
-    return get_authors_rank(session)
+# @app.get('/a/rankings')
+# async def authors_rankings():
+#     return get_authors_rank(session)
 
 
 @app.get('/a/{id_frontend}')
@@ -99,6 +100,12 @@ async def author_network(id_frontend: str):
     return get_author_network(
         session, id_backend, collaboration_threshold=COLLABORATION_THRESHOLD,
         network_max_count=NETWORK_MAX_COUNT)
+
+
+@app.get('/a/{id_frontend}/stats')
+async def author_stats(id_frontend: str):
+    id_backend = front_back_mapper(id_frontend)
+    return get_author_stats(session, id_backend)
 
 
 if __name__ == "__main__":
