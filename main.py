@@ -20,6 +20,7 @@ from elsaserver import \
     get_author_keywords, \
     get_author_jmetrics, \
     get_author_network
+from elsaserver.api.get_authors_rank import get_authors_rank
 
 from elsametric.models.base import Session
 
@@ -40,6 +41,11 @@ async def authors():
 @app.get('/a/list')
 async def authors_list():
     return authors_frontend
+
+
+@app.get('/a/rankings')
+async def authors_rankings():
+    return get_authors_rank(session)
 
 
 @app.get('/a/{id_frontend}')
