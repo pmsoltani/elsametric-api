@@ -30,6 +30,7 @@ from elsaserver.api.get_author_trend import get_author_trend
 from elsaserver.api.get_author_keywords import get_author_keywords
 from elsaserver.api.get_author_jmetrics import get_author_jmetrics
 from elsaserver.api.get_author_network import get_author_network
+from elsaserver.api.get_author_stats import get_author_stats
 
 
 # ==============================================================================
@@ -43,6 +44,7 @@ with io.open(CURRENT_DIR / 'config.json', 'r') as config_file:
 config = config['api']
 
 HOME_INSTITUTION_ID_SCP = config['home_institution_id_scp']
+HOME_COUNTRY_DOMAIN = config['home_country_domain']
 YEAR_RANGE = config['year_range']
 KEYWORDS_THRESHOLD = config['keywords_threshold']
 COLLABORATION_THRESHOLD = config['collaboration_threshold']
@@ -59,6 +61,10 @@ session = Session()
 home_institution = session \
     .query(Institution) \
     .filter(Institution.id_scp == HOME_INSTITUTION_ID_SCP) \
+    .first()
+home_country = session \
+    .query(Country) \
+    .filter(Country.domain == HOME_COUNTRY_DOMAIN) \
     .first()
 
 authors_backend, authors_frontend = get_institution_authors(
