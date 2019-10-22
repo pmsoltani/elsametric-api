@@ -5,6 +5,7 @@ from elsametric.models.country import Country
 
 from .. import home_country, home_institution
 
+
 paper_types_mapper = {
     'ar': 'article',
     'ip': 'article',
@@ -42,11 +43,15 @@ def get_author_stats(session, id_backend: int):
             'intlCollaborations': None
         }
     }
+    total_citations = this_year_papers = this_year_citations = 0
+    single_authorship = 0
+    inst_collaborations = nat_collaborations = intl_collaborations = 0
+    this_year = datetime.now().year
 
     try:
         author = session.query(Author).get(id_backend)  # None if not found
-        this_year = datetime.now().year
 
+        # h-index & i10-index
         stats['hIndex'] = {
             'value': author.h_index_gsc,  # possible AttributeError
             'retrievalTime': author.retrieval_time_gsc,
@@ -56,18 +61,14 @@ def get_author_stats(session, id_backend: int):
             'retrievalTime': author.retrieval_time_gsc,
         }
 
-        total_citations = this_year_papers = this_year_citations = 0
-        single_authorship = inst_collaborations = 0
-        nat_collaborations = intl_collaborations = 0
-
         papers = [paper_author.paper for paper_author in author.papers]
         stats['papers']['totalPapers'] = len(papers)
         for paper in papers:
             # papers & citations count
+            total_citations += paper.cited_cnt or 0  # citations might be None
             if paper.get_year() == this_year:
                 this_year_papers += 1
                 this_year_citations += paper.cited_cnt or 0
-            total_citations += paper.cited_cnt or 0
 
             # paper types
             paper_type = paper_types_mapper[paper.type]
@@ -76,6 +77,7 @@ def get_author_stats(session, id_backend: int):
             except KeyError:
                 stats['paperTypes'][paper_type] = 1
 
+            # collaborations
             co_authors = [
                 paper_author.author for paper_author in paper.authors]
             if len(co_authors) == 1:
