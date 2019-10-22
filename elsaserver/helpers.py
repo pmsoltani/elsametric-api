@@ -1,3 +1,4 @@
+from elsaserver import authors_backend
 
 
 def author_formatter(author, department: bool = False,
@@ -132,3 +133,13 @@ def get_joint_papers(papers: list, co_author, format_results: bool = False):
         joint_papers = [paper_formatter(paper) for paper in joint_papers]
 
     return joint_papers
+
+
+def front_back_mapper(id_frontend: str):
+    if not isinstance(id_frontend, str):
+        return None
+
+    try:
+        return authors_backend[id_frontend]
+    except KeyError:
+        return None
