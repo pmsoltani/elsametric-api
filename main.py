@@ -41,57 +41,64 @@ async def authors():
 
 @app.get('/a/list')
 async def authors_list():
-    return authors_frontend
+    return authors_frontend or INITIAL_RESPONSE
 
 
 # @app.get('/a/rankings')
 # async def authors_rankings():
-#     return get_authors_rank(session)
+#     return get_authors_rank(session) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}')
 async def author_info(id_frontend: str):
     id_backend = front_back_mapper(id_frontend)
-    return get_author_info(session, home_institution, id_backend)
+    return get_author_info(
+        session, home_institution, id_backend) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}/papers')
-async def author_papers(id_frontend: str, year: int = None, keyword: str = None,
-                        metric: str = None, coID: str = None,):
+async def author_papers(id_frontend: str, year: int = None,
+                        keyword: str = None, metric: str = None,
+                        coID: str = None,):
     params_set = {year, keyword, metric, coID}
     if len(params_set) > 2:  # more than 1 parameter in the request
         return INITIAL_RESPONSE
     id_backend = front_back_mapper(id_frontend)
     if year:
         return get_author_papers_year(
-            session, id_backend, year=year, year_range=YEAR_RANGE)
+            session, id_backend, year=year,
+            year_range=YEAR_RANGE) or INITIAL_RESPONSE
     if keyword:
-        return get_author_papers_keyword(session, id_backend, keyword=keyword,
-                                         keywords_threshold=KEYWORDS_THRESHOLD)
+        return get_author_papers_keyword(
+            session, id_backend, keyword=keyword,
+            keywords_threshold=KEYWORDS_THRESHOLD) or INITIAL_RESPONSE
     if metric:
-        return get_author_papers_jmetric(session, id_backend, metric=metric)
+        return get_author_papers_jmetric(
+            session, id_backend, metric=metric) or INITIAL_RESPONSE
     if coID:
-        return get_author_papers_co_id(session, id_backend, co_id=coID)
-    return get_author_papers(session, id_backend)
+        return get_author_papers_co_id(
+            session, id_backend, co_id=coID) or INITIAL_RESPONSE
+    return get_author_papers(session, id_backend) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}/trend')
 async def author_trend(id_frontend: str):
     id_backend = front_back_mapper(id_frontend)
-    return get_author_trend(session, id_backend)
+    return get_author_trend(session, id_backend) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}/keywords')
 async def author_keywords(id_frontend: str):
     id_backend = front_back_mapper(id_frontend)
     return get_author_keywords(
-        session, id_backend, keywords_threshold=KEYWORDS_THRESHOLD)
+        session, id_backend,
+        keywords_threshold=KEYWORDS_THRESHOLD) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}/jmetrics')
 async def author_jmetrics(id_frontend: str):
     id_backend = front_back_mapper(id_frontend)
-    return get_author_jmetrics(session, id_backend)
+    return get_author_jmetrics(session, id_backend) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}/network')
@@ -99,13 +106,13 @@ async def author_network(id_frontend: str):
     id_backend = front_back_mapper(id_frontend)
     return get_author_network(
         session, id_backend, collaboration_threshold=COLLABORATION_THRESHOLD,
-        network_max_count=NETWORK_MAX_COUNT)
+        network_max_count=NETWORK_MAX_COUNT) or INITIAL_RESPONSE
 
 
 @app.get('/a/{id_frontend}/stats')
 async def author_stats(id_frontend: str):
     id_backend = front_back_mapper(id_frontend)
-    return get_author_stats(session, id_backend)
+    return get_author_stats(session, id_backend) or INITIAL_RESPONSE
 
 
 if __name__ == "__main__":
