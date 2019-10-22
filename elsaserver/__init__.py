@@ -1,23 +1,32 @@
-import io
-import json
-from pathlib import Path
+from elsaserver.definitions import \
+    Session, \
+    Author_Department, \
+    Paper_Keyword, \
+    Paper_Author, \
+    Source_Subject, \
+    Author, \
+    Author_Profile, \
+    Country, \
+    Department, \
+    Fund, \
+    Institution, \
+    Keyword, \
+    Paper, \
+    Source, \
+    Source_Metric, \
+    Subject, \
+    home_country, \
+    home_institution, \
+    authors_backend, \
+    authors_frontend, \
+    HOME_INSTITUTION_ID_SCP, \
+    HOME_COUNTRY_DOMAIN, \
+    YEAR_RANGE, \
+    KEYWORDS_THRESHOLD, \
+    COLLABORATION_THRESHOLD, \
+    NETWORK_MAX_COUNT, \
+    INITIAL_RESPONSE
 
-from elsametric.models.base import Session
-from elsametric.models.associations import Author_Department
-from elsametric.models.associations import Paper_Keyword
-from elsametric.models.associations import Paper_Author
-from elsametric.models.associations import Source_Subject
-from elsametric.models.author import Author
-from elsametric.models.author_profile import Author_Profile
-from elsametric.models.country import Country
-from elsametric.models.department import Department
-from elsametric.models.fund import Fund
-from elsametric.models.institution import Institution
-from elsametric.models.keyword_ import Keyword
-from elsametric.models.paper import Paper
-from elsametric.models.source import Source
-from elsametric.models.source_metric import Source_Metric
-from elsametric.models.subject import Subject
 
 from elsaserver.api.get_institution_authors import get_institution_authors
 from elsaserver.api.get_author_info import get_author_info
@@ -32,50 +41,4 @@ from elsaserver.api.get_author_jmetrics import get_author_jmetrics
 from elsaserver.api.get_author_network import get_author_network
 from elsaserver.api.get_author_stats import get_author_stats
 
-
-# ==============================================================================
-# Config
-# ==============================================================================
-
-
-CURRENT_DIR = Path.cwd()
-with io.open(CURRENT_DIR / 'config.json', 'r') as config_file:
-    config = json.load(config_file)
-config = config['api']
-
-HOME_INSTITUTION_ID_SCP = config['home_institution_id_scp']
-HOME_COUNTRY_DOMAIN = config['home_country_domain']
-YEAR_RANGE = config['year_range']
-KEYWORDS_THRESHOLD = config['keywords_threshold']
-COLLABORATION_THRESHOLD = config['collaboration_threshold']
-NETWORK_MAX_COUNT = config['network_max_count']
-INITIAL_RESPONSE = {'message': 'not found', 'code': 404}
-
-
-# ==============================================================================
-# Functions & Variables
-# ==============================================================================
-
-
-session = Session()
-home_institution = session \
-    .query(Institution) \
-    .filter(Institution.id_scp == HOME_INSTITUTION_ID_SCP) \
-    .first()
-home_country = session \
-    .query(Country) \
-    .filter(Country.domain == HOME_COUNTRY_DOMAIN) \
-    .first()
-
-authors_backend, authors_frontend = get_institution_authors(
-    session, HOME_INSTITUTION_ID_SCP)
-
-
-def front_back_mapper(id_frontend: str):
-    if not isinstance(id_frontend, str):
-        return None
-
-    try:
-        return authors_backend[id_frontend]
-    except KeyError:
-        return None
+from elsaserver.helpers import front_back_mapper
