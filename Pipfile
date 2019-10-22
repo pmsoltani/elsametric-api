@@ -5,6 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 autopep8 = "*"
+vermin = "*"
 
 [packages]
 fastapi = "*"
@@ -12,6 +13,7 @@ uvicorn = "*"
 sqlalchemy = "*"
 mysql-connector-python = "*"
 sqlalchemy-utils = "*"
+elsametric = {file = "https://github.com/pmsoltani/elsametric/zipball/dev"}
 
 [requires]
 python_version = "3.7"

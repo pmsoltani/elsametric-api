@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cb803217ff4c515b543a02ecc517f98d7ab580e7f187e88a30ac6919ec09312b"
+            "sha256": "c4979a763639ce272069b6757d2b1206e09af589184c91f51705cd9d1951a135"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,9 @@
             ],
             "version": "==7.0"
         },
+        "elsametric": {
+            "file": "https://github.com/pmsoltani/elsametric/zipball/dev"
+        },
         "fastapi": {
             "hashes": [
                 "sha256:38356cf424392142a561f32ab49113dec6e2ab7318862ae14d5e1d7ede16d14f",
@@ -42,7 +45,6 @@
             "hashes": [
                 "sha256:e00cbd7ba01ff748e494248183abc6e153f49181169d8a3d41bb49132ca01dfc"
             ],
-            "markers": "sys_platform != 'win32' and sys_platform != 'cygwin' and platform_python_implementation != 'pypy'",
             "version": "==0.0.13"
         },
         "mysql-connector-python": {
@@ -135,10 +137,10 @@
         },
         "uvicorn": {
             "hashes": [
-                "sha256:639cdeb92cdb0205494ca36be03d08e05d57249491751feb5fc74b023a0d18f3"
+                "sha256:33c7cfcf71450d2170c9a4c4c7559767329040a36b159e3889554132e4b89457"
             ],
             "index": "pypi",
-            "version": "==0.9.0"
+            "version": "==0.9.1"
         },
         "uvloop": {
             "hashes": [
@@ -150,7 +152,6 @@
                 "sha256:c63b6c0bf33144c604dd72f7eecf2d3a3ac7405c503c67bd98128cf306efe18a",
                 "sha256:e698a20a3b4ccb380d207f9d491d4085d7c38d364f6a0bae98684a1612a9607a"
             ],
-            "markers": "sys_platform != 'win32' and sys_platform != 'cygwin' and platform_python_implementation != 'pypy'",
             "version": "==0.13.0"
         },
         "websockets": {
@@ -184,6 +185,13 @@
                 "sha256:e40a936c9a450ad81df37f549d676d127b1b66000a6c500caa2b085bc0ca976c"
             ],
             "version": "==2.5.0"
+        },
+        "vermin": {
+            "hashes": [
+                "sha256:aeb635560c0806c672f99e2471421d32043baf45d57518676de028ca99c7a631"
+            ],
+            "index": "pypi",
+            "version": "==0.8.1"
         }
     }
 }
