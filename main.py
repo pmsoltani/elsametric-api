@@ -1,3 +1,4 @@
+from enum import Enum
 import uvicorn
 from fastapi import FastAPI, HTTPException
 
@@ -39,6 +40,15 @@ PAPERS404 = {
 }
 
 
+class AuthorPath(str, Enum):
+    trend = 'trend'
+    keywords = 'keywords'
+    network = 'network'
+    jmetrics = 'jmetrics'
+    stats = 'stats'
+    papers = 'papers'
+
+
 @app.get('/')
 async def home():
     raise HTTPException(**PAGE404)
@@ -71,80 +81,74 @@ async def author_info(id_frontend: str):
         raise HTTPException(**AUTHOR404)
 
 
-@app.get('/a/{id_frontend}/papers')
-async def author_papers(id_frontend: str, year: int = None,
-                        keyword: str = None, metric: str = None,
-                        coID: str = None):
-    try:
-        params_set = {year, keyword, metric, coID}
-        if len(params_set) > 2:  # bad request (more than 1 parameter supplied)
+@app.get('/a/{id_frontend}/{author_path}')
+async def get_author_path(id_frontend: str, author_path: AuthorPath,
+                          year: int = None, keyword: str = None,
+                          metric: str = None, coID: str = None):
+    print(locals())
+    if author_path == AuthorPath.trend:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_trend(session, id_backend)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
+
+    if author_path == AuthorPath.keywords:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_keywords(session, id_backend,
+                                       keywords_threshold=KEYWORDS_THRESHOLD)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
+
+    if author_path == AuthorPath.network:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_network(
+                session, id_backend,
+                collaboration_threshold=COLLABORATION_THRESHOLD,
+                network_max_count=NETWORK_MAX_COUNT)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
+
+    if author_path == AuthorPath.jmetrics:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_jmetrics(session, id_backend)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
+
+    if author_path == AuthorPath.stats:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_stats(session, id_backend)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
+
+    if author_path == AuthorPath.papers:
+        try:
+            params_set = {year, keyword, metric, coID}
+            if len(params_set) > 2:
+                # bad request (more than 1 parameter supplied)
+                raise HTTPException(**PAPERS404)
+
+            id_backend = front_back_mapper(id_frontend)
+            if year:
+                return get_author_papers_year(
+                    session, id_backend, year=year, year_range=YEAR_RANGE)
+            if keyword:
+                return get_author_papers_keyword(
+                    session, id_backend, keyword=keyword,
+                    keywords_threshold=KEYWORDS_THRESHOLD)
+            if metric:
+                return get_author_papers_jmetric(
+                    session, id_backend, metric=metric)
+            if coID:
+                return get_author_papers_co_id(session, id_backend, co_id=coID)
+            return get_author_papers(session, id_backend)
+        except (KeyError, ValueError, TypeError):
             raise HTTPException(**PAPERS404)
-
-        id_backend = front_back_mapper(id_frontend)
-        if year:
-            return get_author_papers_year(
-                session, id_backend, year=year, year_range=YEAR_RANGE)
-        if keyword:
-            return get_author_papers_keyword(
-                session, id_backend, keyword=keyword,
-                keywords_threshold=KEYWORDS_THRESHOLD)
-        if metric:
-            return get_author_papers_jmetric(
-                session, id_backend, metric=metric)
-        if coID:
-            return get_author_papers_co_id(session, id_backend, co_id=coID)
-        return get_author_papers(session, id_backend)
-    except (KeyError, ValueError, TypeError):
-        raise HTTPException(**PAPERS404)
-
-
-@app.get('/a/{id_frontend}/trend')
-async def author_trend(id_frontend: str):
-    try:
-        id_backend = front_back_mapper(id_frontend)
-        return get_author_trend(session, id_backend)
-    except (KeyError, AttributeError):
-        raise HTTPException(**AUTHOR404)
-
-
-@app.get('/a/{id_frontend}/keywords')
-async def author_keywords(id_frontend: str):
-    try:
-        id_backend = front_back_mapper(id_frontend)
-        return get_author_keywords(session, id_backend,
-                                   keywords_threshold=KEYWORDS_THRESHOLD)
-    except (KeyError, AttributeError):
-        raise HTTPException(**AUTHOR404)
-
-
-@app.get('/a/{id_frontend}/jmetrics')
-async def author_jmetrics(id_frontend: str):
-    try:
-        id_backend = front_back_mapper(id_frontend)
-        return get_author_jmetrics(session, id_backend)
-    except (KeyError, AttributeError):
-        raise HTTPException(**AUTHOR404)
-
-
-@app.get('/a/{id_frontend}/network')
-async def author_network(id_frontend: str):
-    try:
-        id_backend = front_back_mapper(id_frontend)
-        return get_author_network(
-            session, id_backend,
-            collaboration_threshold=COLLABORATION_THRESHOLD,
-            network_max_count=NETWORK_MAX_COUNT)
-    except (KeyError, AttributeError):
-        raise HTTPException(**AUTHOR404)
-
-
-@app.get('/a/{id_frontend}/stats')
-async def author_stats(id_frontend: str):
-    try:
-        id_backend = front_back_mapper(id_frontend)
-        return get_author_stats(session, id_backend)
-    except (KeyError, AttributeError):
-        raise HTTPException(**AUTHOR404)
+    raise HTTPException(**AUTHOR404)
 
 
 if __name__ == "__main__":
