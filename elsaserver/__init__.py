@@ -24,9 +24,7 @@ from elsaserver.definitions import \
     YEAR_RANGE, \
     KEYWORDS_THRESHOLD, \
     COLLABORATION_THRESHOLD, \
-    NETWORK_MAX_COUNT, \
-    INITIAL_RESPONSE
-
+    NETWORK_MAX_COUNT
 
 from elsaserver.api.get_institution_authors import get_institution_authors
 from elsaserver.api.get_author_info import get_author_info

@@ -25,14 +25,14 @@ def get_institution_authors(session, institution_id_scp):
 		.order_by(Author.last) \
 		.all()  # empty list if not found
 
-	response_backend = {}  # used to map the id_frontend to id, for backend only
-	response_frontend = []  # returned to the frontend
+	authors_backend = {}  # used to map the id_frontend to id, for backend only
+	authors_frontend = []  # returned to the frontend
 	for author in authors:
-		response_backend[author.id_frontend] = author.id
+		authors_backend[author.id_frontend] = author.id
 
-		response_frontend.append({
+		authors_frontend.append({
 			'idFrontend': author.id_frontend,
 			'first': author.first_pref or author.first,
 			'last': author.last_pref or author.last
 		})
-	return response_backend, tuple(response_frontend)
+	return authors_backend, tuple(authors_frontend)

@@ -38,7 +38,6 @@ YEAR_RANGE = config['year_range']
 KEYWORDS_THRESHOLD = config['keywords_threshold']
 COLLABORATION_THRESHOLD = config['collaboration_threshold']
 NETWORK_MAX_COUNT = config['network_max_count']
-INITIAL_RESPONSE = {'message': 'not found', 'code': 404}
 
 
 # ==============================================================================

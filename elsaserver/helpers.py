@@ -1,10 +1,14 @@
+from typing import Optional
+
 from elsaserver import authors_backend
 
 
 def author_formatter(author, department: bool = False,
                      institution: bool = False, home_institution=None,
-                     profile: bool = False):
-    # helper function
+                     profile: bool = False) -> dict:
+    if not author:
+        raise TypeError
+
     result = {}
     if department:
         departments = []
@@ -54,8 +58,10 @@ def author_formatter(author, department: bool = False,
     }
 
 
-def paper_formatter(paper):
-    # TODO: What if paper is None?
+def paper_formatter(paper) -> dict:
+    if not paper:
+        raise TypeError
+
     percentile = None
     quartile = None
     try:
@@ -94,7 +100,7 @@ def paper_formatter(paper):
     }
 
 
-def network_formatter(from_author, to_authors: dict):
+def network_formatter(from_author, to_authors: dict) -> list:
     result = []
     for k, v in to_authors.items():
         result.append({
@@ -114,14 +120,16 @@ def network_formatter(from_author, to_authors: dict):
     return result
 
 
-def network_pruner(network: dict):
-    if not network:
-        return network
-    min_value = min(network.values())
+def network_pruner(network: dict) -> dict:
+    try:
+        min_value = min(network.values())
+    except ValueError:
+        return {}
     return {k: v for k, v in network.items() if v > min_value}
 
 
-def get_joint_papers(papers: list, co_author, format_results: bool = False):
+def get_joint_papers(papers: list,
+                     co_author, format_results: bool = False) -> list:
     # TODO: What if papers or co_author is None?
     joint_papers = []
     for paper in papers:
@@ -135,11 +143,5 @@ def get_joint_papers(papers: list, co_author, format_results: bool = False):
     return joint_papers
 
 
-def front_back_mapper(id_frontend: str):
-    if not isinstance(id_frontend, str):
-        return None
-
-    try:
-        return authors_backend[id_frontend]
-    except KeyError:
-        return None
+def front_back_mapper(id_frontend: str) -> int:
+    return authors_backend[id_frontend]
