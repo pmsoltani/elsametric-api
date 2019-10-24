@@ -1,5 +1,8 @@
+from sqlalchemy import extract
+from sqlalchemy.orm import Session
+
 from elsaserver.definitions import \
-    Session, \
+    SessionLocal, \
     Author_Department, \
     Paper_Keyword, \
     Paper_Author, \
@@ -19,14 +22,13 @@ from elsaserver.definitions import \
     home_institution, \
     authors_backend, \
     authors_frontend, \
+    VARCHAR_COLUMN_LENGTH, \
     HOME_INSTITUTION_ID_SCP, \
     HOME_COUNTRY_DOMAIN, \
     YEAR_RANGE, \
     KEYWORDS_THRESHOLD, \
     COLLABORATION_THRESHOLD, \
-    NETWORK_MAX_COUNT, \
-    INITIAL_RESPONSE
-
+    NETWORK_MAX_COUNT
 
 from elsaserver.api.get_institution_authors import get_institution_authors
 from elsaserver.api.get_author_info import get_author_info

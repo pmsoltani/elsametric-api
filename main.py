@@ -1,12 +1,19 @@
+"""Main API file which employs FastAPI."""
+
+from enum import Enum
+from typing import Iterator
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, Path, Query, HTTPException
+from sqlalchemy.orm import Session
 
 from elsaserver import \
-    INITIAL_RESPONSE, \
+    VARCHAR_COLUMN_LENGTH as ID_LEN, \
     YEAR_RANGE, \
     KEYWORDS_THRESHOLD, \
     COLLABORATION_THRESHOLD, \
     NETWORK_MAX_COUNT, \
+    SessionLocal, \
     authors_frontend, \
     front_back_mapper, \
     home_institution, \
@@ -21,98 +28,155 @@ from elsaserver import \
     get_author_jmetrics, \
     get_author_network, \
     get_author_stats
-# from elsaserver.api.get_authors_rank import get_authors_rank
 
-from elsametric.models.base import Session
+# from elsametric.models.base import SessionLocal
 
-session = Session()
+
+# Dependency
+def get_db() -> Iterator[Session]:
+    """Manage instances of SQLAlchemy's Sessions to interact with db."""
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()
+
 app = FastAPI()
+PAGE404 = {
+    'status_code': 404,
+    'detail': 'The requested page not found.'
+}
+AUTHOR404 = {
+    'status_code': 404,
+    'detail': 'The requested author not found.'
+}
+PAPERS404 = {
+    'status_code': 404,
+    'detail': 'The requested paper(s) not found.'
+}
+
+
+class AuthorPath(str, Enum):
+    """Restricts requests' paths to pre-defined values."""
+
+    trend = 'trend'
+    keywords = 'keywords'
+    network = 'network'
+    jmetrics = 'jmetrics'
+    stats = 'stats'
+    papers = 'papers'
 
 
 @app.get('/')
 async def home():
-    return INITIAL_RESPONSE
+    """Manage API route for root."""
+    raise HTTPException(**PAGE404)
 
 
 @app.get('/a')
 async def authors():
-    return INITIAL_RESPONSE
+    """Manage API route for /a."""
+    raise HTTPException(**PAGE404)
 
 
 @app.get('/a/list')
 async def authors_list():
-    return authors_frontend or INITIAL_RESPONSE
+    """Manage API route for /a/list."""
+    return authors_frontend
 
 
 # @app.get('/a/rankings')
 # async def authors_rankings():
-#     return get_authors_rank(session) or INITIAL_RESPONSE
+#     return get_authors_rank(session)
 
 
 @app.get('/a/{id_frontend}')
-async def author_info(id_frontend: str):
-    id_backend = front_back_mapper(id_frontend)
-    return get_author_info(
-        session, home_institution, id_backend) or INITIAL_RESPONSE
+def author_info(
+        id_frontend: str = Path(..., min_length=ID_LEN, max_length=ID_LEN),
+        db: Session = Depends(get_db)):
+    """Manage API route for /a/{id_frontend}."""
+    try:
+        id_backend = front_back_mapper(id_frontend)
+        response = get_author_info(db, home_institution, id_backend)
+        if not response:
+            raise KeyError
+        return response
+    except (KeyError, TypeError):
+        raise HTTPException(**AUTHOR404)
 
 
-@app.get('/a/{id_frontend}/papers')
-async def author_papers(id_frontend: str, year: int = None,
-                        keyword: str = None, metric: str = None,
-                        coID: str = None,):
-    params_set = {year, keyword, metric, coID}
-    if len(params_set) > 2:  # more than 1 parameter in the request
-        return INITIAL_RESPONSE
-    id_backend = front_back_mapper(id_frontend)
-    if year:
-        return get_author_papers_year(
-            session, id_backend, year=year,
-            year_range=YEAR_RANGE) or INITIAL_RESPONSE
-    if keyword:
-        return get_author_papers_keyword(
-            session, id_backend, keyword=keyword,
-            keywords_threshold=KEYWORDS_THRESHOLD) or INITIAL_RESPONSE
-    if metric:
-        return get_author_papers_jmetric(
-            session, id_backend, metric=metric) or INITIAL_RESPONSE
-    if coID:
-        return get_author_papers_co_id(
-            session, id_backend, co_id=coID) or INITIAL_RESPONSE
-    return get_author_papers(session, id_backend) or INITIAL_RESPONSE
+@app.get('/a/{id_frontend}/{author_path}')
+def get_author_path(
+        *, id_frontend: str = Path(..., min_length=ID_LEN, max_length=ID_LEN),
+        author_path: AuthorPath,
+        year: int = Query(None, ge=YEAR_RANGE[0], le=YEAR_RANGE[1]),
+        keyword: str = None, jmetric: str = None, coID: str = None,
+        db: Session = Depends(get_db)):
+    """Manage API route for /a/{id_frontend}/{author_path}."""
+    if author_path == AuthorPath.trend:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_trend(db, id_backend)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
 
+    if author_path == AuthorPath.keywords:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_keywords(db, id_backend,
+                                       keywords_threshold=KEYWORDS_THRESHOLD)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
 
-@app.get('/a/{id_frontend}/trend')
-async def author_trend(id_frontend: str):
-    id_backend = front_back_mapper(id_frontend)
-    return get_author_trend(session, id_backend) or INITIAL_RESPONSE
+    if author_path == AuthorPath.network:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_network(
+                db, id_backend,
+                collaboration_threshold=COLLABORATION_THRESHOLD,
+                network_max_count=NETWORK_MAX_COUNT)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
 
+    if author_path == AuthorPath.jmetrics:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_jmetrics(db, id_backend)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
 
-@app.get('/a/{id_frontend}/keywords')
-async def author_keywords(id_frontend: str):
-    id_backend = front_back_mapper(id_frontend)
-    return get_author_keywords(
-        session, id_backend,
-        keywords_threshold=KEYWORDS_THRESHOLD) or INITIAL_RESPONSE
+    if author_path == AuthorPath.stats:
+        try:
+            id_backend = front_back_mapper(id_frontend)
+            return get_author_stats(db, id_backend)
+        except (KeyError, AttributeError):
+            raise HTTPException(**AUTHOR404)
 
+    if author_path == AuthorPath.papers:
+        try:
+            params_set = {year, keyword, jmetric, coID}
+            if len(params_set) > 2:
+                # bad request (more than 1 parameter supplied)
+                raise HTTPException(**PAPERS404)
 
-@app.get('/a/{id_frontend}/jmetrics')
-async def author_jmetrics(id_frontend: str):
-    id_backend = front_back_mapper(id_frontend)
-    return get_author_jmetrics(session, id_backend) or INITIAL_RESPONSE
-
-
-@app.get('/a/{id_frontend}/network')
-async def author_network(id_frontend: str):
-    id_backend = front_back_mapper(id_frontend)
-    return get_author_network(
-        session, id_backend, collaboration_threshold=COLLABORATION_THRESHOLD,
-        network_max_count=NETWORK_MAX_COUNT) or INITIAL_RESPONSE
-
-
-@app.get('/a/{id_frontend}/stats')
-async def author_stats(id_frontend: str):
-    id_backend = front_back_mapper(id_frontend)
-    return get_author_stats(session, id_backend) or INITIAL_RESPONSE
+            id_backend = front_back_mapper(id_frontend)
+            if year:
+                return get_author_papers_year(
+                    db, id_backend, year=year, year_range=YEAR_RANGE)
+            if keyword:
+                return get_author_papers_keyword(
+                    db, id_backend, keyword=keyword,
+                    keywords_threshold=KEYWORDS_THRESHOLD)
+            if jmetric:
+                return get_author_papers_jmetric(
+                    db, id_backend, jmetric=jmetric)
+            if coID:
+                return get_author_papers_co_id(
+                    db, id_backend, co_id=coID)
+            return get_author_papers(db, id_backend)
+        except (KeyError, ValueError, TypeError):
+            raise HTTPException(**PAPERS404)
+    raise HTTPException(**AUTHOR404)
 
 
 if __name__ == "__main__":
