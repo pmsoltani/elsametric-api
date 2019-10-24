@@ -1,14 +1,13 @@
-from elsametric.models.paper import Paper
-from elsametric.models.associations import Paper_Author
-from elsametric.models.author import Author
+from typing import Tuple
 
+from .. import Author, Paper, Paper_Author, Session
 from ..helpers import paper_formatter
 
 
-def get_author_papers(session, id_backend: int)->tuple:
+def get_author_papers(db: Session, id_backend: int) -> Tuple[dict]:
     # returns a list of all papers for author 'id_backend'
 
-    papers = session \
+    papers = db \
         .query(Paper) \
         .join((Paper_Author, Paper.authors)) \
         .join((Author, Paper_Author.author)) \

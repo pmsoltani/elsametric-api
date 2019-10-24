@@ -1,36 +1,34 @@
-from sqlalchemy import extract
+from typing import Tuple
 
-from elsametric.models.paper import Paper
-from elsametric.models.associations import Paper_Author
-from elsametric.models.author import Author
-from elsametric.models.source import Source
-from elsametric.models.source_metric import Source_Metric
-
+from .. import \
+    Author, Paper, Paper_Author, Source, Source_Metric, \
+    Session, extract
 from ..helpers import paper_formatter
 
 
-def get_author_papers_jmetric(session, id_backend: int, metric: str) -> tuple:
-    # returns a list of author's papers published in journal with metric
+def get_author_papers_jmetric(
+        db: Session, id_backend: int, jmetric: str) -> Tuple[dict]:
+    # returns a list of author's papers published in journal with jmetric
 
-    if not isinstance(metric, str):
+    if not isinstance(jmetric, str):
         raise TypeError
 
-    metric = metric.lower()
+    jmetric = jmetric.lower()
     allowed_metrics = tuple(
         [f'p{x}' for x in range(100)] +
         ['q1', 'q2', 'q3', 'q4'])
-    if metric not in allowed_metrics:
+    if jmetric not in allowed_metrics:
         raise ValueError
 
-    if metric[0] == 'p':  # received a percentile value
-        top_percentile = bottom_percentile = metric[1:]
+    if jmetric[0] == 'p':  # received a percentile value
+        top_percentile = bottom_percentile = jmetric[1:]
 
-    if metric[0] == 'q':  # received a quartile value
-        quartile = int(metric[1])
+    if jmetric[0] == 'q':  # received a quartile value
+        quartile = int(jmetric[1])
         top_percentile = (4 - quartile) * 25 + 25 - 1
         bottom_percentile = (4 - quartile) * 25
 
-    papers = session \
+    papers = db \
         .query(Paper) \
         .join((Paper_Author, Paper.authors)) \
         .join((Author, Paper_Author.author)) \

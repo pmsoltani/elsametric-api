@@ -1,17 +1,16 @@
-from elsametric.models.paper import Paper
-from elsametric.models.associations import Paper_Author
-from elsametric.models.author import Author
+from typing import Tuple
 
+from .. import Author, Paper, Paper_Author, Session
 from ..helpers import network_formatter, network_pruner, get_joint_papers
 
 
-def get_author_network(session, id_backend: int,
+def get_author_network(db: Session, id_backend: int,
                        collaboration_threshold: int,
-                       network_max_count: int) -> tuple:
+                       network_max_count: int) -> Tuple[dict]:
     final_network = []
 
     # 1. get a list of (author)'s (papers)
-    papers = session \
+    papers = db \
         .query(Paper) \
         .join((Paper_Author, Paper.authors)) \
         .join((Author, Paper_Author.author)) \
@@ -19,7 +18,7 @@ def get_author_network(session, id_backend: int,
         .all()  # empty list if not found
 
     # 2. add (author) to an (exclusion_list)
-    author = session.query(Author).get(id_backend)  # None if not found
+    author = db.query(Author).get(id_backend)  # None if not found
     exclusion_list = [author]
 
     # 3.1. get a list of (author)'s all (co_authors), add to 'final_network'

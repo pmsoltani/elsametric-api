@@ -1,9 +1,9 @@
-from elsametric.models.author import Author
+from .. import \
+    Author, authors_backend, home_institution, home_country, \
+    Session
 
-from .. import authors_backend, home_institution, home_country
 
-
-def get_authors_rank(session):
+def get_authors_rank(db: Session) -> dict:
     stats = {
         'h_index_gsc': [],
         'i10_index_gsc': [],
@@ -16,15 +16,15 @@ def get_authors_rank(session):
 
     for id_backend in authors_backend.values():
         try:
-            author = session.query(Author).get(id_backend)  # None if not found
+            author = db.query(Author).get(id_backend)  # None if not found
 
             # possible AttributeError
             stats['h_index_gsc'].append(author.h_index_gsc)
             stats['i10_index_gsc'].append(author.i10_index_gsc)
 
             # possible TypeError
-            papers_trend = author.get_papers()
-            citations_trend = author.get_citations()
+            papers_trend = author.get_papers_trend()
+            citations_trend = author.get_citations_trend()
             stats['total_papers'].append(sum(papers_trend.values()))
             stats['total_citations'].append(sum(citations_trend.values()))
 

@@ -1,9 +1,6 @@
 from datetime import datetime
 
-from elsametric.models.author import Author
-from elsametric.models.country import Country
-
-from .. import home_country, home_institution
+from .. import Author, Country, Session, home_country, home_institution
 
 
 paper_types_mapper = {
@@ -24,7 +21,7 @@ paper_types_mapper = {
 }
 
 
-def get_author_stats(session, id_backend: int):
+def get_author_stats(db: Session, id_backend: int) -> dict:
     stats = {
         'hIndex': None,
         'i10Index': None,
@@ -47,7 +44,7 @@ def get_author_stats(session, id_backend: int):
     inst_collaborations = nat_collaborations = intl_collaborations = 0
     this_year = datetime.now().year
 
-    author = session.query(Author).get(id_backend)  # None if not found
+    author = db.query(Author).get(id_backend)  # None if not found
 
     # h-index & i10-index
     stats['hIndex'] = {

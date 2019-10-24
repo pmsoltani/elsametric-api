@@ -1,19 +1,17 @@
-from elsametric.models.paper import Paper
-from elsametric.models.associations import Paper_Author
-from elsametric.models.author import Author
-from elsametric.models.keyword_ import Keyword
+from typing import Tuple
 
+from .. import Author, Keyword, Paper, Paper_Author, Session
 from ..helpers import paper_formatter
 
 
-def get_author_papers_keyword(session, id_backend: int,
-                              keyword: str, keywords_threshold: int) -> tuple:
+def get_author_papers_keyword(db: Session, id_backend: int, keyword: str,
+                              keywords_threshold: int) -> Tuple[dict]:
     # returns a list of papers containing 'keyword' for author 'id_backend'
 
     if not isinstance(keyword, str):
         raise TypeError
 
-    author = session.query(Author).get(id_backend)  # None if not found
+    author = db.query(Author).get(id_backend)  # None if not found
 
     # checking if the requested keyword is genuine
     # possible AttributeError
@@ -22,7 +20,7 @@ def get_author_papers_keyword(session, id_backend: int,
     if not(keywords_list) or (keyword not in keywords_list):
         raise ValueError
 
-    papers = session \
+    papers = db \
         .query(Paper) \
         .join((Paper_Author, Paper.authors)) \
         .join((Author, Paper_Author.author)) \

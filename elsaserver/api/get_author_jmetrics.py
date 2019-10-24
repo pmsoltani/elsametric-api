@@ -1,7 +1,9 @@
-from elsametric.models.author import Author
+from typing import Tuple
+
+from .. import Author, Session
 
 
-def get_author_jmetrics(session, id_backend: int) -> tuple:
+def get_author_jmetrics(db: Session, id_backend: int) -> Tuple[dict]:
     metrics = [
         {'name': 'q1', 'percentiles': []},
         {'name': 'q2', 'percentiles': []},
@@ -9,7 +11,7 @@ def get_author_jmetrics(session, id_backend: int) -> tuple:
         {'name': 'q4', 'percentiles': []},
         {'name': 'undefined', 'value': 0},
     ]
-    author = session.query(Author).get(id_backend)  # None if not found
+    author = db.query(Author).get(id_backend)  # None if not found
     for metric in author.get_metrics():  # possible AttributeError
         if metric[0] == 'Undefined':
             metrics[-1]['value'] = metric[1]

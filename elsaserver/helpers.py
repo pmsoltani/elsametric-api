@@ -1,11 +1,16 @@
-from typing import Optional
+"""Helper functions for elsaserver."""
 
+from typing import List, Mapping, Optional
+
+from .definitions import Author, Institution, Paper
 from elsaserver import authors_backend
 
 
-def author_formatter(author, department: bool = False,
-                     institution: bool = False, home_institution=None,
+def author_formatter(author: Author, department: bool = False,
+                     institution: bool = False,
+                     home_institution: Institution = None,
                      profile: bool = False) -> dict:
+    """Receives an 'Author' object and returns a dict from its data."""
     if not author:
         raise TypeError
 
@@ -58,7 +63,8 @@ def author_formatter(author, department: bool = False,
     }
 
 
-def paper_formatter(paper) -> dict:
+def paper_formatter(paper: Paper) -> dict:
+    """Receives a 'Paper' object and returns a dict from its data."""
     if not paper:
         raise TypeError
 
@@ -100,7 +106,9 @@ def paper_formatter(paper) -> dict:
     }
 
 
-def network_formatter(from_author, to_authors: dict) -> list:
+def network_formatter(from_author: Author,
+                      to_authors: Mapping[Author, int]) -> List[dict]:
+    """Return a list of author-co_author collaborations."""
     result = []
     for k, v in to_authors.items():
         result.append({
@@ -121,6 +129,7 @@ def network_formatter(from_author, to_authors: dict) -> list:
 
 
 def network_pruner(network: dict) -> dict:
+    """Remove items from the dict according to a condition."""
     try:
         min_value = min(network.values())
     except ValueError:
@@ -128,8 +137,9 @@ def network_pruner(network: dict) -> dict:
     return {k: v for k, v in network.items() if v > min_value}
 
 
-def get_joint_papers(papers: list,
-                     co_author, format_results: bool = False) -> list:
+def get_joint_papers(papers: List[Paper], co_author: Author,
+                     format_results: bool = False) -> List[dict]:
+    """Return the papers that have a certain 'co_author'."""
     # TODO: What if papers or co_author is None?
     joint_papers = []
     for paper in papers:
@@ -144,4 +154,5 @@ def get_joint_papers(papers: list,
 
 
 def front_back_mapper(id_frontend: str) -> int:
+    """Map 'id_frontend' to 'id_backend'."""
     return authors_backend[id_frontend]

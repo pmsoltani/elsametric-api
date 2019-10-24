@@ -1,5 +1,8 @@
+from sqlalchemy import extract
+from sqlalchemy.orm import Session
+
 from elsaserver.definitions import \
-    Session, \
+    SessionLocal, \
     Author_Department, \
     Paper_Keyword, \
     Paper_Author, \
@@ -19,6 +22,7 @@ from elsaserver.definitions import \
     home_institution, \
     authors_backend, \
     authors_frontend, \
+    VARCHAR_COLUMN_LENGTH, \
     HOME_INSTITUTION_ID_SCP, \
     HOME_COUNTRY_DOMAIN, \
     YEAR_RANGE, \

@@ -1,8 +1,10 @@
+"""Imports definitions and creates variables."""
+
 import io
 import json
 from pathlib import Path
 
-from elsametric.models.base import Session
+from elsametric.models.base import SessionLocal, VARCHAR_COLUMN_LENGTH
 from elsametric.models.associations import Author_Department
 from elsametric.models.associations import Paper_Keyword
 from elsametric.models.associations import Paper_Author
@@ -45,15 +47,15 @@ NETWORK_MAX_COUNT = config['network_max_count']
 # ==============================================================================
 
 
-session = Session()
-home_country = session \
+db = SessionLocal()
+home_country = db \
     .query(Country) \
     .filter(Country.domain == HOME_COUNTRY_DOMAIN) \
     .first()
-home_institution = session \
+home_institution = db \
     .query(Institution) \
     .filter(Institution.id_scp == HOME_INSTITUTION_ID_SCP) \
     .first()
 
 authors_backend, authors_frontend = get_institution_authors(
-    session, HOME_INSTITUTION_ID_SCP)
+    db, HOME_INSTITUTION_ID_SCP)

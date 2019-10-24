@@ -1,14 +1,11 @@
-from sqlalchemy import extract
+from typing import Tuple
 
-from elsametric.models.paper import Paper
-from elsametric.models.associations import Paper_Author
-from elsametric.models.author import Author
-
+from .. import Author, Paper, Paper_Author, Session, extract
 from ..helpers import paper_formatter
 
 
-def get_author_papers_year(session, id_backend: int,
-                           year: int, year_range: tuple) -> tuple:
+def get_author_papers_year(db: Session, id_backend: int,
+                           year: int, year_range: tuple) -> Tuple[dict]:
     # returns a list of papers published in 'year' for author 'id_backend'
 
     if not isinstance(year, int):
@@ -16,7 +13,7 @@ def get_author_papers_year(session, id_backend: int,
     if not (year_range[0] <= year <= year_range[1]):
         raise ValueError
 
-    papers = session \
+    papers = db \
         .query(Paper) \
         .join((Paper_Author, Paper.authors)) \
         .join((Author, Paper_Author.author)) \
