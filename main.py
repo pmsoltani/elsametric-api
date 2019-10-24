@@ -1,12 +1,19 @@
+"""Main API file which employs FastAPI."""
+
 from enum import Enum
+from typing import Iterator
+
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Depends, Path, Query, HTTPException
+from sqlalchemy.orm import Session
 
 from elsaserver import \
+    VARCHAR_COLUMN_LENGTH as ID_LEN, \
     YEAR_RANGE, \
     KEYWORDS_THRESHOLD, \
     COLLABORATION_THRESHOLD, \
     NETWORK_MAX_COUNT, \
+    SessionLocal, \
     authors_frontend, \
     front_back_mapper, \
     home_institution, \
@@ -22,9 +29,18 @@ from elsaserver import \
     get_author_network, \
     get_author_stats
 
-from elsametric.models.base import Session
+# from elsametric.models.base import SessionLocal
 
-session = Session()
+
+# Dependency
+def get_db() -> Iterator[Session]:
+    """Manage instances of SQLAlchemy's Sessions to interact with db."""
+    try:
+        db = SessionLocal()
+        yield db
+    finally:
+        db.close()
+
 app = FastAPI()
 PAGE404 = {
     'status_code': 404,
@@ -41,6 +57,8 @@ PAPERS404 = {
 
 
 class AuthorPath(str, Enum):
+    """Restricts requests' paths to pre-defined values."""
+
     trend = 'trend'
     keywords = 'keywords'
     network = 'network'
@@ -51,16 +69,19 @@ class AuthorPath(str, Enum):
 
 @app.get('/')
 async def home():
+    """Manage API route for root."""
     raise HTTPException(**PAGE404)
 
 
 @app.get('/a')
 async def authors():
+    """Manage API route for /a."""
     raise HTTPException(**PAGE404)
 
 
 @app.get('/a/list')
 async def authors_list():
+    """Manage API route for /a/list."""
     return authors_frontend
 
 
@@ -70,10 +91,13 @@ async def authors_list():
 
 
 @app.get('/a/{id_frontend}')
-async def author_info(id_frontend: str):
+def author_info(
+        id_frontend: str = Path(..., min_length=ID_LEN, max_length=ID_LEN),
+        db: Session = Depends(get_db)):
+    """Manage API route for /a/{id_frontend}."""
     try:
         id_backend = front_back_mapper(id_frontend)
-        response = get_author_info(session, home_institution, id_backend)
+        response = get_author_info(db, home_institution, id_backend)
         if not response:
             raise KeyError
         return response
@@ -82,21 +106,24 @@ async def author_info(id_frontend: str):
 
 
 @app.get('/a/{id_frontend}/{author_path}')
-async def get_author_path(id_frontend: str, author_path: AuthorPath,
-                          year: int = None, keyword: str = None,
-                          metric: str = None, coID: str = None):
-    print(locals())
+def get_author_path(
+        *, id_frontend: str = Path(..., min_length=ID_LEN, max_length=ID_LEN),
+        author_path: AuthorPath,
+        year: int = Query(None, ge=YEAR_RANGE[0], le=YEAR_RANGE[1]),
+        keyword: str = None, jmetric: str = None, coID: str = None,
+        db: Session = Depends(get_db)):
+    """Manage API route for /a/{id_frontend}/{author_path}."""
     if author_path == AuthorPath.trend:
         try:
             id_backend = front_back_mapper(id_frontend)
-            return get_author_trend(session, id_backend)
+            return get_author_trend(db, id_backend)
         except (KeyError, AttributeError):
             raise HTTPException(**AUTHOR404)
 
     if author_path == AuthorPath.keywords:
         try:
             id_backend = front_back_mapper(id_frontend)
-            return get_author_keywords(session, id_backend,
+            return get_author_keywords(db, id_backend,
                                        keywords_threshold=KEYWORDS_THRESHOLD)
         except (KeyError, AttributeError):
             raise HTTPException(**AUTHOR404)
@@ -105,7 +132,7 @@ async def get_author_path(id_frontend: str, author_path: AuthorPath,
         try:
             id_backend = front_back_mapper(id_frontend)
             return get_author_network(
-                session, id_backend,
+                db, id_backend,
                 collaboration_threshold=COLLABORATION_THRESHOLD,
                 network_max_count=NETWORK_MAX_COUNT)
         except (KeyError, AttributeError):
@@ -114,20 +141,20 @@ async def get_author_path(id_frontend: str, author_path: AuthorPath,
     if author_path == AuthorPath.jmetrics:
         try:
             id_backend = front_back_mapper(id_frontend)
-            return get_author_jmetrics(session, id_backend)
+            return get_author_jmetrics(db, id_backend)
         except (KeyError, AttributeError):
             raise HTTPException(**AUTHOR404)
 
     if author_path == AuthorPath.stats:
         try:
             id_backend = front_back_mapper(id_frontend)
-            return get_author_stats(session, id_backend)
+            return get_author_stats(db, id_backend)
         except (KeyError, AttributeError):
             raise HTTPException(**AUTHOR404)
 
     if author_path == AuthorPath.papers:
         try:
-            params_set = {year, keyword, metric, coID}
+            params_set = {year, keyword, jmetric, coID}
             if len(params_set) > 2:
                 # bad request (more than 1 parameter supplied)
                 raise HTTPException(**PAPERS404)
@@ -135,17 +162,18 @@ async def get_author_path(id_frontend: str, author_path: AuthorPath,
             id_backend = front_back_mapper(id_frontend)
             if year:
                 return get_author_papers_year(
-                    session, id_backend, year=year, year_range=YEAR_RANGE)
+                    db, id_backend, year=year, year_range=YEAR_RANGE)
             if keyword:
                 return get_author_papers_keyword(
-                    session, id_backend, keyword=keyword,
+                    db, id_backend, keyword=keyword,
                     keywords_threshold=KEYWORDS_THRESHOLD)
-            if metric:
+            if jmetric:
                 return get_author_papers_jmetric(
-                    session, id_backend, metric=metric)
+                    db, id_backend, jmetric=jmetric)
             if coID:
-                return get_author_papers_co_id(session, id_backend, co_id=coID)
-            return get_author_papers(session, id_backend)
+                return get_author_papers_co_id(
+                    db, id_backend, co_id=coID)
+            return get_author_papers(db, id_backend)
         except (KeyError, ValueError, TypeError):
             raise HTTPException(**PAPERS404)
     raise HTTPException(**AUTHOR404)
