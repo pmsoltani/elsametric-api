@@ -35,7 +35,10 @@ def author_formatter(author: Author, department: bool = False,
         try:
             # possible TypeError, AttributeError
             for i in author.get_institutions():
-                if (home_institution) and (i != home_institution):
+                # If home_institution provided, return only that.
+                # Compare institutions with 'id', for more robust results
+                # across different sessions.
+                if (home_institution) and (i.id != home_institution.id):
                     continue
                 institutions.append(
                     {'name': i.name, 'idFrontend': i.id_frontend})
