@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import List
 
-from .. import Author, Country, Session, home_country, home_institution
+from .. import Author, Country, Paper, Session, home_country, home_institution
 
 
 paper_types_mapper = {
@@ -10,10 +11,10 @@ paper_types_mapper = {
     're': 'review',
     'bk': 'book',
     'ch': 'book',
-    'tb': 'retracted',
+    'tb': 'other',
     'le': 'other',
     'ed': 'other',
-    'no': 'note',
+    'no': 'other',
     'er': 'other',
     'sh': 'other',
     'ab': 'other',
@@ -26,24 +27,34 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
         'hIndex': None,
         'i10Index': None,
         'papers': {
-            'totalPapers': None,
-            'totalCitationss': None,
-            'thisYearPapers': None,
-            'thisYearCitationss': None
+            'retrievalTime': None,
+            'totalPapers': 0,
+            'totalCitations': 0,
+            'thisYearPapers': 0,
+            'thisYearCitations': 0
         },
-        'paperTypes': {},
+        'paperTypes': {
+            'retrievalTime': None,
+            'article': 0,
+            'conference': 0,
+            'review': 0,
+            'book': 0,
+            'other': 0,
+        },
         'collaborations': {
-            'singleAuthorship': None,
-            'instCollaborations': None,
-            'natCollaborations': None,
-            'intlCollaborations': None
+            'retrievalTime': None,
+            'singleAuthorship': 0,
+            'instCollaboration': 0,
+            'natCollaboration': 0,
+            'intlCollaboration': 0
         }
     }
     total_citations = this_year_papers = this_year_citations = 0
     single_authorship = 0
-    inst_collaborations = nat_collaborations = intl_collaborations = 0
+    inst_collaboration = nat_collaboration = intl_collaboration = 0
     this_year = datetime.now().year
 
+    author: Author
     author = db.query(Author).get(id_backend)  # None if not found
 
     # h-index & i10-index
@@ -56,9 +67,14 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
         'retrievalTime': author.retrieval_time_gsc,
     }
 
+    papers: List[Paper]
     papers = [paper_author.paper for paper_author in author.papers]
     stats['papers']['totalPapers'] = len(papers)
+    oldest_retrieval_time = datetime.now()
     for paper in papers:
+        # comparing the retrieval times:
+        if paper.retrieval_time < oldest_retrieval_time:
+            oldest_retrieval_time = paper.retrieval_time
         # papers & citations count
         total_citations += paper.cited_cnt or 0  # citations might be None
         if paper.get_year() == this_year:
@@ -68,6 +84,7 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
         # paper types
         paper_type = paper_types_mapper[paper.type]
         try:
+            # possible KeyError, TypeError
             stats['paperTypes'][paper_type] += 1
         except KeyError:
             stats['paperTypes'][paper_type] = 1
@@ -95,18 +112,23 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
                 is_nat_paper = True
 
         if is_intl_paper:
-            intl_collaborations += 1
+            intl_collaboration += 1
         elif is_nat_paper:
-            nat_collaborations += 1
+            nat_collaboration += 1
         else:
-            inst_collaborations += 1
+            inst_collaboration += 1
 
-    stats['papers']['totalCitationss'] = total_citations
+    stats['papers']['retrievalTime'] = oldest_retrieval_time
+    stats['papers']['totalCitations'] = total_citations
     stats['papers']['thisYearPapers'] = this_year_papers
-    stats['papers']['thisYearCitationss'] = this_year_citations
+    stats['papers']['thisYearCitations'] = this_year_citations
+
+    stats['paperTypes']['retrievalTime'] = oldest_retrieval_time
+
+    stats['collaborations']['retrievalTime'] = oldest_retrieval_time
     stats['collaborations']['singleAuthorship'] = single_authorship
-    stats['collaborations']['instCollaborations'] = inst_collaborations
-    stats['collaborations']['natCollaborations'] = nat_collaborations
-    stats['collaborations']['intlCollaborations'] = intl_collaborations
+    stats['collaborations']['instCollaboration'] = inst_collaboration
+    stats['collaborations']['natCollaboration'] = nat_collaboration
+    stats['collaborations']['intlCollaboration'] = intl_collaboration
 
     return stats
