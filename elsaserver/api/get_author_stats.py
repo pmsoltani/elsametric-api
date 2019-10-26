@@ -54,8 +54,7 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
     inst_collaboration = nat_collaboration = intl_collaboration = 0
     this_year = datetime.now().year
 
-    author: Author
-    author = db.query(Author).get(id_backend)  # None if not found
+    author: Author = db.query(Author).get(id_backend)  # None if not found
 
     # h-index & i10-index
     stats['hIndex'] = {
@@ -67,8 +66,8 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
         'retrievalTime': author.retrieval_time_gsc,
     }
 
-    papers: List[Paper]
-    papers = [paper_author.paper for paper_author in author.papers]
+    papers: List[Paper] = [paper_author.paper
+                           for paper_author in author.papers]
     stats['papers']['totalPapers'] = len(papers)
     oldest_retrieval_time = datetime.now()
     for paper in papers:
@@ -103,7 +102,9 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
             # Since multiple SQLAlchemy sessions might be involved (between
             # 'home_country', 'home_institution', and 'co_author' objects),
             # it's best to use the objects' ids in comparisons.
-            country_ids = {c.id for c in co_author.get_countries()}
+
+            # Some institutions might not have a country
+            country_ids = {c.id for c in co_author.get_countries() if c}
             if country_ids and home_country.id not in country_ids:
                 is_intl_paper = True
                 break
