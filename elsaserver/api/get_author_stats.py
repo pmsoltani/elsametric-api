@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import List
-import traceback
 
 from .. import Author, Country, Paper, Session, home_country, home_institution
 
@@ -55,8 +54,7 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
     inst_collaboration = nat_collaboration = intl_collaboration = 0
     this_year = datetime.now().year
 
-    author: Author
-    author = db.query(Author).get(id_backend)  # None if not found
+    author: Author = db.query(Author).get(id_backend)  # None if not found
 
     # h-index & i10-index
     stats['hIndex'] = {
@@ -68,8 +66,8 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
         'retrievalTime': author.retrieval_time_gsc,
     }
 
-    papers: List[Paper]
-    papers = [paper_author.paper for paper_author in author.papers]
+    papers: List[Paper] = [paper_author.paper
+                           for paper_author in author.papers]
     stats['papers']['totalPapers'] = len(papers)
     oldest_retrieval_time = datetime.now()
     for paper in papers:
