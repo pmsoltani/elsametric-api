@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+import traceback
 
 from .. import Author, Country, Paper, Session, home_country, home_institution
 
@@ -103,7 +104,9 @@ def get_author_stats(db: Session, id_backend: int) -> dict:
             # Since multiple SQLAlchemy sessions might be involved (between
             # 'home_country', 'home_institution', and 'co_author' objects),
             # it's best to use the objects' ids in comparisons.
-            country_ids = {c.id for c in co_author.get_countries()}
+
+            # Some institutions might not have a country
+            country_ids = {c.id for c in co_author.get_countries() if c}
             if country_ids and home_country.id not in country_ids:
                 is_intl_paper = True
                 break
