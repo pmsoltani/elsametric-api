@@ -16,6 +16,7 @@ mysql-connector-python = "*"
 sqlalchemy-utils = "*"
 elsametric = {file = "https://github.com/pmsoltani/elsametric/zipball/dev"}
 psycopg2 = "*"
+environs = "*"
 
 [requires]
 python_version = "3.7"
