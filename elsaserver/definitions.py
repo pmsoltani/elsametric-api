@@ -4,6 +4,8 @@ import io
 import json
 from pathlib import Path
 
+from environs import Env
+
 from elsametric.models.base import SessionLocal, VARCHAR_COLUMN_LENGTH
 from elsametric.models.associations import Author_Department
 from elsametric.models.associations import Paper_Keyword
@@ -29,17 +31,16 @@ from elsaserver.api.get_institution_authors import get_institution_authors
 # ==============================================================================
 
 
-CURRENT_DIR = Path.cwd()
-with io.open(CURRENT_DIR / 'config.json', 'r') as config_file:
-    config = json.load(config_file)
-config = config['api']
+env = Env()
+env.read_env()
 
-HOME_INSTITUTION_ID_SCP = config['home_institution_id_scp']
-HOME_COUNTRY_DOMAIN = config['home_country_domain']
-YEAR_RANGE = config['year_range']
-KEYWORDS_THRESHOLD = config['keywords_threshold']
-COLLABORATION_THRESHOLD = config['collaboration_threshold']
-NETWORK_MAX_COUNT = config['network_max_count']
+with env.prefixed('API_'):
+    HOME_INSTITUTION_ID_SCP = env.int("HOME_INSTITUTION_ID_SCP")
+    HOME_COUNTRY_DOMAIN = env("HOME_COUNTRY_DOMAIN")
+    YEAR_RANGE = env.list("YEAR_RANGE", subcast=int)
+    KEYWORDS_THRESHOLD = env.int("KEYWORDS_THRESHOLD")
+    COLLABORATION_THRESHOLD = env.int("COLLABORATION_THRESHOLD")
+    NETWORK_MAX_COUNT = env.int("NETWORK_MAX_COUNT")
 
 
 # ==============================================================================
