@@ -1,7 +1,7 @@
 click==7.0
 fastapi==0.42.0
 h11==0.8.1
-https://github.com/pmsoltani/elsametric/zipball/dev#egg=elsametric
+https://github.com/pmsoltani/elsametric/zipball/dev
 httptools==0.0.13
 mysql-connector-python==8.0.18
 protobuf==3.10.0
