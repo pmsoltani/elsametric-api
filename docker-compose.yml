@@ -1,0 +1,48 @@
+version: '3.5'
+services:
+  # nginx:
+  #   restart: always
+  #   build: ./nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - .:/www/static
+  #     - web-data:/usr/src/app/static
+  #   depends_on:
+  #     - api
+
+  api:
+    container_name: elsaserver
+    restart: always
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    # links:
+    #   - db:db
+    ports:
+      - 8000:8000
+    # expose:
+    #   - "8000"
+    env_file: .env
+
+  db:
+    container_name: elsametric
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/Downloads/$DB_POSTGRESQL_CONTAINER_NAME:/var/lib/postgresql
+      - ~/Downloads/$DB_POSTGRESQL_CONTAINER_NAME/data:/var/lib/postgresql/data
+    build:
+      context: ./
+      dockerfile: db.Dockerfile
+      args:
+        DB_RESTORE: hib
+        DB_DIALECT: postgresql
+        POSTGRES_DB: scopus
+        POSTGRES_USER: postgres
+
+# volumes:
+#   db_volume:
