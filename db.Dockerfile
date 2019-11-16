@@ -1,0 +1,16 @@
+FROM postgres:12.0-alpine
+
+ARG DB_DIALECT
+ARG DB_RESTORE
+ARG POSTGRES_DB
+ARG POSTGRES_USER
+
+ENV DB_DIALECT=${DB_DIALECT}
+ENV DB_RESTORE=${DB_RESTORE}
+ENV POSTGRES_DB=${POSTGRES_DB}
+ENV POSTGRES_USER=${POSTGRES_USER}
+
+COPY ./db_restore.sh /
+RUN ["chmod", "+x", "/db_restore.sh"]
+# ENTRYPOINT ["./db_restore.sh"]
+# RUN ./db_restore.sh
