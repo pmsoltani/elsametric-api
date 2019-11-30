@@ -2,10 +2,8 @@ FROM python:3.7.5
 
 WORKDIR /elsaserver
 
-COPY ./requirements.txt requirements.txt
+COPY . .
+
 RUN pip install -r requirements.txt
 
-COPY ./main.py main.py
-COPY ./elsaserver elsaserver
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${SERVER_PORT}"]
