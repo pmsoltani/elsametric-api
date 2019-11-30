@@ -1,5 +1,6 @@
 # Git
 .git
+.gitignore
 
 # Docker
 Dockerfile
@@ -71,3 +72,9 @@ logs/
 # config
 config.json
 config.ini
+
+# Pipenv, Poetry
+Pipfile
+Pipfile.lock
+pyproject.toml
+poetry.lock

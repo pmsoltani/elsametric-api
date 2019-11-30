@@ -1,7 +1,7 @@
 astroid==2.3.3
 autopep8==1.4.4
 Click==7.0
--e git+https://github.com/pmsoltani/elsametric.git@3222a3b9d3e1c2f9904c185910712c66068e1b32#egg=elsametric
+https://github.com/pmsoltani/elsametric/zipball/dev
 environs==6.1.0
 fastapi==0.44.0
 h11==0.8.1
