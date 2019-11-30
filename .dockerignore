@@ -1,4 +1,9 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -65,4 +70,11 @@ data/
 logs/
 
 # config
-*config.*
+config.json
+config.ini
+
+# Pipenv, Poetry
+Pipfile
+Pipfile.lock
+pyproject.toml
+poetry.lock
