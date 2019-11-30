@@ -1,3 +1,9 @@
+# Git
+.git
+
+# Docker
+Dockerfile
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -64,6 +70,4 @@ logs/
 
 # config
 config.json
-
-# pipfile
-Pipfile
+config.ini
