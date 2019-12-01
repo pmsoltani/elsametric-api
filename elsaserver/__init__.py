@@ -23,6 +23,7 @@ from elsaserver.definitions import \
     authors_backend, \
     authors_frontend, \
     VARCHAR_COLUMN_LENGTH, \
+    BACKEND_CORS_ORIGINS, \
     HOME_INSTITUTION_ID_SCP, \
     HOME_COUNTRY_DOMAIN, \
     YEAR_RANGE, \
