@@ -34,7 +34,10 @@ from elsaserver.api.get_institution_authors import get_institution_authors
 env = Env()
 env.read_env()
 
+BACKEND_CORS_ORIGINS = env('BACKEND_CORS_ORIGINS', '')
+
 with env.prefixed('API_'):
+
     HOME_INSTITUTION_ID_SCP = env.int("HOME_INSTITUTION_ID_SCP")
     HOME_COUNTRY_DOMAIN = env("HOME_COUNTRY_DOMAIN")
     YEAR_RANGE = env.list("YEAR_RANGE", subcast=int)

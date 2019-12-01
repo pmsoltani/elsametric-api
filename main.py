@@ -5,10 +5,12 @@ from typing import Iterator
 
 import uvicorn
 from fastapi import FastAPI, Depends, Path, Query, HTTPException
+from starlette.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from elsaserver import \
     VARCHAR_COLUMN_LENGTH as ID_LEN, \
+    BACKEND_CORS_ORIGINS, \
     YEAR_RANGE, \
     KEYWORDS_THRESHOLD, \
     COLLABORATION_THRESHOLD, \
@@ -55,6 +57,16 @@ PAPERS404 = {
     'detail': 'The requested paper(s) not found.'
 }
 
+if BACKEND_CORS_ORIGINS:
+    origins = [cors.strip() for cors in BACKEND_CORS_ORIGINS.split(',')]
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 class AuthorPath(str, Enum):
     """Restricts requests' paths to pre-defined values."""
@@ -65,7 +77,6 @@ class AuthorPath(str, Enum):
     jmetrics = 'jmetrics'
     stats = 'stats'
     papers = 'papers'
-
 
 @app.get('/')
 async def home():
